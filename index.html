@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>세계 문화유산, 국립공원, 천연기념물 지도</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+  <style>
+    #map {
+      height: 90vh;
+      width: 100%;
+    }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+    #input-section {
+      padding: 10px;
+      background: #f8f8f8;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    #input-section input, #input-section select, #input-section button {
+      padding: 6px;
+      font-size: 14px;
+    }
+    #input-section label {
+      display: flex;
+      flex-direction: column;
+      font-size: 12px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <h2 style="text-align:center;">세계 문화유산, 국립공원, 천연기념물 지도</h2>
+
+  <div id="input-section">
+    <label>
+      이름
+      <input type="text" id="name" placeholder="장소 이름" />
+    </label>
+    <label>
+      카테고리
+      <select id="category">
+        <option value="cultural">문화유산</option>
+        <option value="national_park">국립공원</option>
+        <option value="natural_monument">천연기념물</option>
+      </select>
+    </label>
+    <label>
+      위도
+      <input type="number" step="any" id="lat" placeholder="위도" />
+    </label>
+    <label>
+      경도
+      <input type="number" step="any" id="lng" placeholder="경도" />
+    </label>
+    <button id="addMarkerBtn">마커 추가</button>
+  </div>
+
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const map = L.map("map").setView([20, 0], 2);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "© OpenStreetMap contributors",
+    }).addTo(map);
+
+    const markerGroups = {
+      cultural: L.layerGroup().addTo(map),
+      national_park: L.layerGroup().addTo(map),
+      natural_monument: L.layerGroup().addTo(map),
+    };
+
+    const markerColors = {
+      cultural: "#007bff",       // 파란색
+      national_park: "#28a745",  // 초록색
+      natural_monument: "#ff7f00", // 주황색
+    };
+
+    const culturalSites = [
+      { name: "경주 역사 유적지", lat: 35.856, lng: 129.224 },
+      { name: "앙코르 와트", lat: 13.4125, lng: 103.8667 },
+      { name: "만리장성", lat: 40.4319, lng: 116.5704 },
+      { name: "피라미드", lat: 29.9792, lng: 31.1342 },
+      { name: "마추픽추", lat: -13.1631, lng: -72.545 },
+      { name: "타지마할", lat: 27.1751, lng: 78.0421 },
+      { name: "이스터 섬 모아이", lat: -27.1127, lng: -109.3497 },
+      { name: "콜로세움", lat: 41.8902, lng: 12.4922 },
+      { name: "자유의 여신상", lat: 40.6892, lng: -74.0445 },
+      { name: "아테네 파르테논", lat: 37.9715, lng: 23.7267 },
+      { name: "바르셀로나 사그라다 파밀리아", lat: 41.4036, lng: 2.1744 },
+      { name: "프랑스 몽생미셸", lat: 48.636, lng: -1.5115 },
+      { name: "페트라", lat: 30.3285, lng: 35.4444 },
+      { name: "러시아 크렘린", lat: 55.752, lng: 37.6175 },
+      { name: "멕시코 치첸이트사", lat: 20.6843, lng: -88.5678 },
+      { name: "모스크바 붉은 광장", lat: 55.7539, lng: 37.6208 },
+      { name: "이스탄불 아야 소피아", lat: 41.0086, lng: 28.9802 },
+      { name: "키예프 페체르스카 라브라", lat: 50.4406, lng: 30.5572 },
+      { name: "루브르 박물관", lat: 48.8606, lng: 2.3376 },
+      { name: "시드니 오페라 하우스", lat: -33.8568, lng: 151.2153 },
+    ];
+
+    const nationalParks = [
+      { name: "그랜드 캐니언 국립공원", lat: 36.1069, lng: -112.1129 },
+      { name: "옐로스톤 국립공원", lat: 44.428, lng: -110.5885 },
+      { name: "요세미티 국립공원", lat: 37.8651, lng: -119.5383 },
+      { name: "그레이트 베이슨 국립공원", lat: 38.98, lng: -114.28 },
+      { name: "바다코끼리 국립공원", lat: 61.213, lng: -149.9 },
+      { name: "반디네스 국립공원", lat: 37.111, lng: -113.584 },
+      { name: "데스 밸리 국립공원", lat: 36.532, lng: -116.932 },
+      { name: "로키 마운틴 국립공원", lat: 40.3428, lng: -105.6836 },
+      { name: "아카디아 국립공원", lat: 44.35, lng: -68.21 },
+      { name: "조슈아 트리 국립공원", lat: 33.8734, lng: -115.901 },
+      { name: "글레이셔 국립공원", lat: 48.7596, lng: -113.787 },
+      { name: "세쿼이아 국립공원", lat: 36.4864, lng: -118.5658 },
+      { name: "에버글레이즈 국립공원", lat: 25.2866, lng: -80.8987 },
+      { name: "마운트 레이니어 국립공원", lat: 46.8523, lng: -121.7603 },
+      { name: "글레이셔 베이 국립공원", lat: 58.5, lng: -136.5 },
+      { name: "도날드슨 국립공원", lat: 38.6, lng: -78.1 },
+      { name: "데날리 국립공원", lat: 63.33, lng: -150.5 },
+      { name: "에인절 폴 국립공원", lat: 37.123, lng: -118.12 },
+      { name: "시에라 국립공원", lat: 36.716, lng: -118.983 },
+      { name: "올림픽 국립공원", lat: 47.8021, lng: -123.6044 },
+    ];
+
+    const naturalMonuments = [
+      { name: "울루루 (에어즈 록, 호주)", lat: -25.3444, lng: 131.0369 },
+      { name: "올드 페이스풀 간헐천 (미국)", lat: 44.4605, lng: -110.8281 },
+      { name: "빅토리아 폭포 (짐바브웨/잠비아)", lat: -17.9243, lng: 25.856 },
+      { name: "시레토코 반도 (일본)", lat: 44.0611, lng: 145.1681 },
+      { name: "몬테베르데 구름숲 보호구역 (코스타리카)", lat: 10.27, lng: -84.78 },
+      { name: "한라산 (대한민국)", lat: 33.3617, lng: 126.5292 },
+      { name: "아마존 열대우림 (브라질)", lat: -3.4653, lng: -62.2159 },
+      { name: "갈라파고스 제도 (에콰도르)", lat: -0.9538, lng: -90.9656 },
+      { name: "갈렌강 협곡 (독일)", lat: 49.5604, lng: 7.6909 },
+      { name: "플리트비체 호수 국립공원 (크로아티아)", lat: 44.8651, lng: 15.582 },
+      { name: "우루루 국립공원 (호주)", lat: -25.345, lng: 131.036 },
+      { name: "나미브 사막 (나미비아)", lat: -24.7761, lng: 15.3683 },
+      { name: "바우터 호수 (캐나다)", lat: 52.5, lng: -117.3 },
+      { name: "크레이터 호수 (미국)", lat: 42.9446, lng: -122.109 },
+      { name: "토레스 델 파이네 (칠레)", lat: -50.942, lng: -73.406 },
+      { name: "제주 화산섬과 용암동굴 (대한민국)", lat: 33.3, lng: 126.5 },
+      { name: "갈라파고스섬 (에콰도르)", lat: -0.9538, lng: -90.9656 },
+      { name: "사하라 사막 (북아프리카)", lat: 23.4162, lng: 25.6628 },
+      { name: "세렝게티 평원 (탄자니아)", lat: -2.3333, lng: 34.8333 },
+      { name: "나이아가라 폭포 (미국/캐나다)", lat: 43.0962, lng: -79.0377 },
+    ];
+
+    function addMarkers() {
+      for (const key in markerGroups) {
+        markerGroups[key].clearLayers();
+      }
+
+      culturalSites.forEach((site) => {
+        L.circleMarker([site.lat, site.lng], {
+          radius: 8,
+          fillColor: markerColors.cultural,
+          color: "#003f7f",
+          weight: 1,
+          opacity: 1,
+          fillOpacity: 0.7,
+        })
+          .bindPopup(`<b>${site.name}</b><br>카테고리: 문화유산`)
+          .addTo(markerGroups.cultural);
+      });
+
+      nationalParks.forEach((park) => {
+        L.circleMarker([park.lat, park.lng], {
+          radius: 8,
+          fillColor: markerColors.national_park,
+          color: "#1c5438",
+          weight: 1,
+          opacity: 1,
+          fillOpacity: 0.7,
+        })
+          .bindPopup(`<b>${park.name}</b><br>카테고리: 국립공원`)
+          .addTo(markerGroups.national_park);
+      });
+
+      naturalMonuments.forEach((monument) => {
+        L.circleMarker([monument.lat, monument.lng], {
+          radius: 8,
+          fillColor: markerColors.natural_monument,
+          color: "#b35a00",
+          weight: 1,
+          opacity: 1,
+          fillOpacity: 0.7,
+        })
+          .bindPopup(`<b>${monument.name}</b><br>카테고리: 천연기념물`)
+          .addTo(markerGroups.natural_monument);
+      });
+    }
+
+    addMarkers();
+
+    const overlays = {
+      "문화유산": markerGroups.cultural,
+      "국립공원": markerGroups.national_park,
+      "천연기념물": markerGroups.natural_monument,
+    };
+    L.control.layers(null, overlays).addTo(map);
+
+    document.getElementById("addMarkerBtn").addEventListener("click", () => {
+      const name = document.getElementById("name").value.trim();
+      const category = document.getElementById("category").value;
+      const lat = parseFloat(document.getElementById("lat").value);
+      const lng = parseFloat(document.getElementById("lng").value);
+
+      if (!name || isNaN(lat) || isNaN(lng)) {
+        alert("이름과 위도, 경도를 올바르게 입력해주세요.");
+        return;
+      }
+
+      if (category === "cultural") {
+        culturalSites.push({ name, lat, lng });
+      } else if (category === "national_park") {
+        nationalParks.push({ name, lat, lng });
+      } else if (category === "natural_monument") {
+        naturalMonuments.push({ name, lat, lng });
+      }
+
+      addMarkers();
+
+      document.getElementById("name").value = "";
+      document.getElementById("lat").value = "";
+      document.getElementById("lng").value = "";
+    });
+  </script>
+</body>
